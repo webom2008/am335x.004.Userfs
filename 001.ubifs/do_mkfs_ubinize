@@ -1,0 +1,30 @@
+#!/bin/bash
+# Author: QiuWeibo
+# Date  : 2015.6.10
+
+echo "Step1: mkfs.ubifs"
+
+# -F: nand write mode not use ubi write
+# -r <path>: target path
+# -m 2048: min I/O operate size(= Nand flash 1 Page)
+# -e 126976:
+#	1) no sub-page:LEB_SIZE=$BLOCK_SIZE-(2 x $PACE_SIZE)=64pages-2pages=62*2048bytes=126976
+#	2) sub-page:LEB_SIZE=$BLOCK_SIZE-(1 x $PACE_SIZE)=63pages=63*2048bytes=129024
+# -c 1460: 187M/blocksize=187M/(64*2K)=187M/128K=1460
+# -o <name>: object name
+echo "no sub-page";mkfs.ubifs -F -r userfs/ -m 2048 -e 126976 -c 1460 -o userfs.ubi
+
+echo "Step2: ubinize"
+
+# -vv: display detial message
+# -o <name>: object file
+# -m 2048: min I/O operate size(= Nand flash 1 Page)
+# -p 128KiB: earse block size(1block=128KiB)
+# *.cfg: configure file name
+ubinize -vv -o userfs.img -m 2048 -p 128KiB ubinize.cfg
+
+echo "Step3: cp tftproot, rm ..."
+cp userfs.img ~/tftproot/
+rm userfs.img userfs.ubi
+ls -l ~/tftproot/userfs.img
+echo "End!"
